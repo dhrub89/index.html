@@ -1,0 +1,1221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>太平記 — Taiheiki: Chronicle of Great Peace</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=IM+Fell+English:ital@0;1&family=Noto+Serif+JP:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0a0a0f;
+    --blood: #8b1a1a;
+    --gold: #c9943a;
+    --gold-light: #f0c060;
+    --ash: #d4c9b0;
+    --mist: #a8a090;
+    --paper: #1a1610;
+    --glow: rgba(201, 148, 58, 0.15);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--ink);
+    color: var(--ash);
+    font-family: 'IM Fell English', serif;
+    overflow-x: hidden;
+    cursor: crosshair;
+  }
+
+  /* ===== HERO / BATTLE ARENA ===== */
+  #hero {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: radial-gradient(ellipse at 50% 60%, #1a0a00 0%, #0a0a0f 70%);
+  }
+
+  /* Moon */
+  .moon {
+    position: absolute;
+    top: 8%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 40% 40%, #fff9e0, #e8d48a 40%, #c9943a 80%);
+    box-shadow: 0 0 60px 30px rgba(201,148,58,0.25), 0 0 120px 60px rgba(201,148,58,0.08);
+    z-index: 1;
+    animation: moonPulse 4s ease-in-out infinite;
+  }
+
+  @keyframes moonPulse {
+    0%,100% { box-shadow: 0 0 60px 30px rgba(201,148,58,0.25), 0 0 120px 60px rgba(201,148,58,0.08); }
+    50% { box-shadow: 0 0 80px 40px rgba(201,148,58,0.35), 0 0 160px 80px rgba(201,148,58,0.12); }
+  }
+
+  /* Stars */
+  .stars {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+  }
+  .star {
+    position: absolute;
+    background: white;
+    border-radius: 50%;
+    animation: twinkle var(--dur) ease-in-out infinite var(--delay);
+  }
+  @keyframes twinkle {
+    0%,100% { opacity: 0.2; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.4); }
+  }
+
+  /* Mountains */
+  .mountains {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 45%;
+    z-index: 2;
+  }
+
+  /* Battle Scene Canvas */
+  #battleCanvas {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 55%;
+    z-index: 3;
+  }
+
+  /* Ground */
+  .ground {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 80px;
+    background: linear-gradient(to top, #1a0e00, #2a1a05, transparent);
+    z-index: 4;
+  }
+
+  /* Hero text */
+  .hero-content {
+    position: relative;
+    z-index: 10;
+    text-align: center;
+    pointer-events: none;
+    margin-top: -20vh;
+  }
+
+  .jp-title {
+    font-family: 'Noto Serif JP', serif;
+    font-size: clamp(4rem, 12vw, 9rem);
+    font-weight: 700;
+    color: transparent;
+    background: linear-gradient(135deg, var(--gold-light) 0%, var(--gold) 50%, var(--blood) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    line-height: 1;
+    filter: drop-shadow(0 0 30px rgba(201,148,58,0.5));
+    animation: titleGlow 3s ease-in-out infinite;
+    letter-spacing: 0.1em;
+  }
+
+  @keyframes titleGlow {
+    0%,100% { filter: drop-shadow(0 0 30px rgba(201,148,58,0.5)); }
+    50% { filter: drop-shadow(0 0 50px rgba(201,148,58,0.9)) drop-shadow(0 0 80px rgba(139,26,26,0.4)); }
+  }
+
+  .en-title {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: clamp(0.7rem, 2vw, 1.2rem);
+    letter-spacing: 0.4em;
+    color: var(--mist);
+    margin-top: 0.5rem;
+    text-transform: uppercase;
+  }
+
+  .tagline {
+    font-family: 'IM Fell English', serif;
+    font-style: italic;
+    font-size: clamp(0.9rem, 2.5vw, 1.3rem);
+    color: var(--gold);
+    margin-top: 1.2rem;
+    opacity: 0.85;
+  }
+
+  .scroll-hint {
+    position: absolute;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    text-align: center;
+    color: var(--mist);
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    animation: fadeUpDown 2s ease-in-out infinite;
+  }
+  .scroll-hint::after {
+    content: '';
+    display: block;
+    margin: 0.5rem auto 0;
+    width: 1px;
+    height: 40px;
+    background: linear-gradient(to bottom, var(--gold), transparent);
+  }
+  @keyframes fadeUpDown {
+    0%,100% { opacity: 0.4; transform: translateX(-50%) translateY(0); }
+    50% { opacity: 1; transform: translateX(-50%) translateY(-5px); }
+  }
+
+  /* ===== BLOOD DIVIDER ===== */
+  .divider {
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(to right, transparent, var(--blood), var(--gold), var(--blood), transparent);
+    position: relative;
+  }
+
+  /* ===== SECTIONS ===== */
+  .section {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 5rem 2rem;
+  }
+
+  .section-num {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 0.65rem;
+    letter-spacing: 0.5em;
+    color: var(--blood);
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+
+  .section-title {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: clamp(1.4rem, 4vw, 2.5rem);
+    color: var(--gold);
+    margin-bottom: 0.3rem;
+    line-height: 1.2;
+  }
+
+  .jp-sub {
+    font-family: 'Noto Serif JP', serif;
+    font-size: 1.1rem;
+    color: var(--mist);
+    margin-bottom: 2.5rem;
+    letter-spacing: 0.15em;
+  }
+
+  /* ===== POINTS GRID ===== */
+  .points-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+  }
+
+  .point-card {
+    background: linear-gradient(135deg, rgba(201,148,58,0.04) 0%, rgba(139,26,26,0.03) 100%);
+    border: 1px solid rgba(201,148,58,0.15);
+    border-left: 3px solid var(--blood);
+    padding: 1.5rem 1.5rem 1.5rem 1.8rem;
+    position: relative;
+    transition: all 0.4s ease;
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%);
+  }
+
+  .point-card:hover {
+    background: linear-gradient(135deg, rgba(201,148,58,0.08) 0%, rgba(139,26,26,0.06) 100%);
+    border-left-color: var(--gold);
+    transform: translateX(4px);
+    box-shadow: -4px 0 20px rgba(139,26,26,0.3), inset 0 0 30px rgba(201,148,58,0.03);
+  }
+
+  .point-num {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 0.6rem;
+    color: var(--blood);
+    letter-spacing: 0.3em;
+    margin-bottom: 0.6rem;
+  }
+
+  .point-jp {
+    font-family: 'Noto Serif JP', serif;
+    font-size: 0.85rem;
+    color: var(--mist);
+    line-height: 1.8;
+    margin-bottom: 0.7rem;
+  }
+
+  .point-en {
+    font-family: 'IM Fell English', serif;
+    font-size: 0.95rem;
+    color: var(--ash);
+    line-height: 1.6;
+  }
+
+  /* ===== PRESENTERS ===== */
+  .presenters-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin: 3rem 0 1rem;
+    justify-content: center;
+  }
+
+  .presenter {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 0.65rem;
+    letter-spacing: 0.35em;
+    color: var(--mist);
+    padding: 0.5rem 1.2rem;
+    border: 1px solid rgba(201,148,58,0.2);
+    position: relative;
+    transition: all 0.3s ease;
+  }
+  .presenter:hover {
+    color: var(--gold);
+    border-color: var(--gold);
+    background: rgba(201,148,58,0.05);
+  }
+
+  /* ===== QUOTE BLOCK ===== */
+  .quote-block {
+    position: relative;
+    text-align: center;
+    padding: 4rem 3rem;
+    margin: 2rem 0;
+    background: radial-gradient(ellipse at center, rgba(139,26,26,0.08), transparent 70%);
+    border-top: 1px solid rgba(201,148,58,0.1);
+    border-bottom: 1px solid rgba(201,148,58,0.1);
+  }
+
+  .quote-block::before, .quote-block::after {
+    content: '⚔';
+    font-size: 2rem;
+    color: rgba(201,148,58,0.2);
+    display: block;
+    margin-bottom: 1rem;
+  }
+  .quote-block::after { margin-bottom: 0; margin-top: 1rem; }
+
+  .quote-jp {
+    font-family: 'Noto Serif JP', serif;
+    font-size: clamp(1rem, 3vw, 1.6rem);
+    color: var(--gold);
+    line-height: 1.8;
+    margin-bottom: 0.8rem;
+  }
+
+  .quote-en {
+    font-family: 'IM Fell English', serif;
+    font-style: italic;
+    font-size: clamp(0.9rem, 2.5vw, 1.2rem);
+    color: var(--mist);
+  }
+
+  /* ===== TIMELINE ===== */
+  .timeline {
+    position: relative;
+    padding-left: 2.5rem;
+    border-left: 1px solid rgba(201,148,58,0.2);
+    margin-top: 2rem;
+  }
+
+  .tl-item {
+    position: relative;
+    padding: 0 0 2.5rem 1.5rem;
+  }
+
+  .tl-item::before {
+    content: '';
+    position: absolute;
+    left: -2.85rem;
+    top: 0.4rem;
+    width: 10px;
+    height: 10px;
+    background: var(--blood);
+    border-radius: 50%;
+    border: 2px solid var(--gold);
+  }
+
+  .tl-year {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 0.7rem;
+    color: var(--gold);
+    letter-spacing: 0.3em;
+    margin-bottom: 0.3rem;
+  }
+
+  .tl-text {
+    font-size: 0.95rem;
+    color: var(--ash);
+    line-height: 1.7;
+  }
+
+  /* ===== FOOTER ===== */
+  footer {
+    text-align: center;
+    padding: 3rem 2rem;
+    border-top: 1px solid rgba(201,148,58,0.1);
+    font-family: 'Noto Serif JP', serif;
+    font-size: 0.8rem;
+    color: rgba(168,160,144,0.4);
+    letter-spacing: 0.2em;
+  }
+
+  footer .group-name {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 0.65rem;
+    color: var(--blood);
+    letter-spacing: 0.4em;
+    margin-bottom: 0.5rem;
+  }
+
+  /* ===== BG TEXTURE ===== */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Crect width='4' height='4' fill='transparent'/%3E%3Crect x='0' y='0' width='1' height='1' fill='rgba(255,255,255,0.012)'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 100;
+  }
+
+  /* Glow orbs */
+  .orb {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(80px);
+    pointer-events: none;
+    z-index: -1;
+  }
+  .orb1 {
+    width: 400px; height: 400px;
+    background: rgba(139,26,26,0.07);
+    top: 10%; right: -100px;
+    animation: orbFloat 8s ease-in-out infinite;
+  }
+  .orb2 {
+    width: 300px; height: 300px;
+    background: rgba(201,148,58,0.05);
+    bottom: 30%; left: -80px;
+    animation: orbFloat 10s ease-in-out infinite reverse;
+  }
+  @keyframes orbFloat {
+    0%,100% { transform: translateY(0); }
+    50% { transform: translateY(-30px); }
+  }
+
+  /* Scroll fade-in */
+  .fade-in {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+  }
+  .fade-in.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Brush stroke decorations */
+  .brush-sep {
+    text-align: center;
+    font-size: 1.5rem;
+    color: rgba(201,148,58,0.15);
+    letter-spacing: 1rem;
+    padding: 1rem 0;
+  }
+
+</style>
+</head>
+<body>
+
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+
+<!-- ========== HERO ========== -->
+<section id="hero">
+  <div class="stars" id="stars"></div>
+  <div class="moon"></div>
+
+  <!-- SVG Mountains -->
+  <svg class="mountains" viewBox="0 0 1440 300" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+    <polygon points="0,300 160,80 320,200 480,40 640,180 800,60 960,190 1120,50 1280,170 1440,90 1440,300" fill="#0d0a06" opacity="0.9"/>
+    <polygon points="0,300 100,140 250,220 400,100 550,200 700,120 850,210 1000,90 1150,180 1300,110 1440,150 1440,300" fill="#0a0806" opacity="0.95"/>
+    <polygon points="0,300 0,240 200,260 400,230 600,250 800,225 1000,245 1200,220 1440,240 1440,300" fill="#060504"/>
+  </svg>
+
+  <!-- Battle Canvas (samurai animation) -->
+  <canvas id="battleCanvas"></canvas>
+
+  <div class="ground"></div>
+
+  <div class="hero-content">
+    <div class="jp-title">太平記</div>
+    <div class="en-title">Taiheiki — Chronicle of Great Peace</div>
+    <div class="tagline">A war tale of medieval Japan · 中世の軍記物語</div>
+  </div>
+
+  <div class="scroll-hint">SCROLL TO READ</div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ========== INTRO ========== -->
+<div class="section fade-in">
+  <div class="section-num">Section I · 導入</div>
+  <div class="section-title">Introduction</div>
+  <div class="jp-sub">はじめに</div>
+
+  <div class="presenters-bar">
+    <span class="presenter">✦ Dhrub</span>
+  </div>
+
+  <div class="points-grid">
+    <div class="point-card">
+      <div class="point-num">Point 01</div>
+      <div class="point-jp">太平記 は日本の 中世に 書かれた 軍記物語です。</div>
+      <div class="point-en">Taiheiki is a war tale written in medieval Japan.</div>
+    </div>
+    <div class="point-card">
+      <div class="point-num">Point 02</div>
+      <div class="point-jp">作者は一人ではなく、僧侶 や 武士 など 多数 の 人 が 関わりました。小島法師 の 説 も あります。</div>
+      <div class="point-en">Not written by one author — monks and warriors contributed. There is also a theory attributing it to Kojima Hōshi.</div>
+    </div>
+    <div class="point-card">
+      <div class="point-num">Point 03</div>
+      <div class="point-jp">応安四年 (1371年) ごろに 成立したと 考えられています。</div>
+      <div class="point-en">Believed to have been completed around the year 1371.</div>
+    </div>
+    <div class="point-card">
+      <div class="point-num">Point 04</div>
+      <div class="point-jp">この本は 南北朝時代の 内戦を えがいています。</div>
+      <div class="point-en">It depicts the civil wars of the Nanboku-chō (Northern and Southern Courts) period.</div>
+    </div>
+  </div>
+</div>
+
+<div class="brush-sep">— ⚔ —</div>
+
+<!-- ========== CONTENT ========== -->
+<div class="section fade-in">
+  <div class="section-num">Section II · 内容</div>
+  <div class="section-title">Content & Narrative</div>
+  <div class="jp-sub">物語の内容</div>
+
+  <div class="presenters-bar">
+    <span class="presenter">✦ Madhu</span>
+  </div>
+
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="tl-year">Chapter I</div>
+      <div class="tl-text">
+        <span style="color:var(--gold);">後醍醐天皇の 討幕計画と 建武新政から 始まります。</span><br>
+        The story begins with Emperor Go-Daigo's plan to overthrow the Kamakura shogunate and the Kenmu Restoration.
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-year">Chapter II</div>
+      <div class="tl-text">
+        <span style="color:var(--gold);">足利尊氏の 反乱が 起こります。</span><br>
+        After that, the rebellion of Ashikaga Takauji ignites the realm.
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-year">Chapter III</div>
+      <div class="tl-text">
+        <span style="color:var(--gold);">吉野と 京都の 二つの 朝廷の 対立が 描かれます。</span><br>
+        The conflict between the Yoshino and Kyoto courts tears Japan in two.
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-year">Chapter IV</div>
+      <div class="tl-text">
+        <span style="color:var(--gold);">室町幕府の 成立と 三代将軍 足利義満に 至る 約半世紀の 歴史を 描きます。</span><br>
+        It covers about fifty years of history, culminating with the third shogun Ashikaga Yoshimitsu.
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ========== FEATURES ========== -->
+<div class="section fade-in">
+  <div class="section-num">Section III · 特徴</div>
+  <div class="section-title">Features & Characteristics</div>
+  <div class="jp-sub">文学的特色</div>
+
+  <div class="presenters-bar">
+    <span class="presenter">✦ Kaif</span>
+  </div>
+
+  <div class="points-grid">
+    <div class="point-card">
+      <div class="point-num">Point 09</div>
+      <div class="point-jp">戦の様子や 武器が とても詳しく 書かれています。</div>
+      <div class="point-en">Battle scenes and weapons are described in extraordinary detail.</div>
+    </div>
+    <div class="point-card">
+      <div class="point-num">Point 10</div>
+      <div class="point-jp">本当の歴史と 作り話が 混ざっています。</div>
+      <div class="point-en">Real history and fiction are woven together seamlessly.</div>
+    </div>
+    <div class="point-card">
+      <div class="point-num">Point 11</div>
+      <div class="point-jp">武士の 忠義や 運命を 悲しく 表現しています。</div>
+      <div class="point-en">The loyalty and fate of warriors are expressed in a deeply tragic manner.</div>
+    </div>
+    <div class="point-card">
+      <div class="point-num">Point 12</div>
+      <div class="point-jp">儒教を 基盤にして、政治や 武士の 生き方を 批判的に 描いています。</div>
+      <div class="point-en">Grounded in Confucian thought, it critically depicts politics and the warrior's way of life.</div>
+    </div>
+  </div>
+</div>
+
+<div class="quote-block fade-in">
+  <div class="quote-jp">無常観が全体の雰囲気です。</div>
+  <div class="quote-en">"A sense of impermanence dominates the entire work."</div>
+</div>
+
+<!-- ========== WRITING STYLE ========== -->
+<div class="section fade-in">
+  <div class="section-num">Section IV · 文章スタイル</div>
+  <div class="section-title">Writing Style</div>
+  <div class="jp-sub">文体と表現</div>
+
+  <div class="presenters-bar">
+    <span class="presenter">✦ Priya</span>
+    <span class="presenter">✦ Firdous</span>
+  </div>
+
+  <div class="points-grid">
+    <div class="point-card">
+      <div class="point-num">Point 13</div>
+      <div class="point-jp">漢文調の 和漢混交文です。</div>
+      <div class="point-en">It employs a mixed Chinese–Japanese literary style (wakan konkōbun).</div>
+    </div>
+    <div class="point-card">
+      <div class="point-num">Point 14</div>
+      <div class="point-jp">漢語や 仏教用語が 多く 使われています。</div>
+      <div class="point-en">Chinese loanwords and Buddhist terminology are used extensively throughout.</div>
+    </div>
+    <div class="point-card">
+      <div class="point-num">Point 15</div>
+      <div class="point-jp">和歌の リズムや 道行文が 含まれています。</div>
+      <div class="point-en">It includes waka poetic rhythms and travel-style descriptive passages.</div>
+    </div>
+    <div class="point-card">
+      <div class="point-num">Point 16</div>
+      <div class="point-jp">物語僧に よって語られ、江戸時代には 太平記読み として 語られました。</div>
+      <div class="point-en">Narrated by storytelling monks, later performed as "Taiheiki readings" in the Edo period.</div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ========== OTHER CHARACTERISTICS ========== -->
+<div class="section fade-in">
+  <div class="section-num">Section V · 特色</div>
+  <div class="section-title">Other Characteristics</div>
+  <div class="jp-sub">その他の特色</div>
+
+  <div class="presenters-bar">
+    <span class="presenter">✦ Mitali</span>
+    <span class="presenter">✦ Faizal</span>
+  </div>
+
+  <div class="points-grid">
+    <div class="point-card">
+      <div class="point-num">Point 17</div>
+      <div class="point-jp">後醍醐天皇を 正義の側として 描きます。</div>
+      <div class="point-en">Emperor Go-Daigo is portrayed as the embodiment of righteousness.</div>
+    </div>
+    <div class="point-card">
+      <div class="point-num">Point 18</div>
+      <div class="point-jp">足利幕府は 必然的に 成立したものと されます。</div>
+      <div class="point-en">The Ashikaga shogunate is presented as an inevitable historical outcome.</div>
+    </div>
+    <div class="point-card">
+      <div class="point-num">Point 19</div>
+      <div class="point-jp">武士の 死や 敗北を 美しく 悲しく 表現します。</div>
+      <div class="point-en">Warriors' deaths and defeats are rendered with haunting, tragic beauty.</div>
+    </div>
+    <div class="point-card">
+      <div class="point-num">Point 20</div>
+      <div class="point-jp">無常観が 全体の 雰囲気です。</div>
+      <div class="point-en">A profound sense of impermanence (mujo) pervades the entire work.</div>
+    </div>
+    <div class="point-card">
+      <div class="point-num">Point 21</div>
+      <div class="point-jp">勝者と 敗者の 両方の 心情を 描きます。</div>
+      <div class="point-en">It portrays the emotions of both winners and losers with equal compassion.</div>
+    </div>
+    <div class="point-card">
+      <div class="point-num">Point 22</div>
+      <div class="point-jp">後の 文学や 芝居に 大きな 影響を 与えました。</div>
+      <div class="point-en">It greatly influenced later Japanese literature and theatre for centuries.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== FOOTER ========== -->
+<div class="divider"></div>
+<footer>
+  <div class="group-name">Group 15–21 · DSE Part 3 Internal</div>
+  太平記 — Taiheiki · Completed c. 1371 · Nanboku-chō Period · 南北朝時代
+  <br><br>
+  <span style="color:rgba(201,148,58,0.3); font-family:'Noto Serif JP',serif; font-size:1.2rem;">勝者と敗者の両方の心情を描く</span>
+</footer>
+
+<script>
+// ===== STARS =====
+const starsEl = document.getElementById('stars');
+for (let i = 0; i < 120; i++) {
+  const s = document.createElement('div');
+  s.className = 'star';
+  const size = Math.random() * 2.5 + 0.5;
+  s.style.cssText = `
+    width:${size}px; height:${size}px;
+    top:${Math.random()*70}%;
+    left:${Math.random()*100}%;
+    --dur:${2 + Math.random()*4}s;
+    --delay:${Math.random()*4}s;
+  `;
+  starsEl.appendChild(s);
+}
+
+// ===== SAMURAI BATTLE CANVAS =====
+const canvas = document.getElementById('battleCanvas');
+const ctx = canvas.getContext('2d');
+
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = canvas.offsetHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+// Sakura particles
+const petals = [];
+for (let i = 0; i < 30; i++) {
+  petals.push({
+    x: Math.random() * 1440,
+    y: Math.random() * 300 - 300,
+    vx: (Math.random() - 0.5) * 0.8,
+    vy: Math.random() * 0.6 + 0.3,
+    size: Math.random() * 5 + 2,
+    rot: Math.random() * Math.PI * 2,
+    rotV: (Math.random() - 0.5) * 0.04,
+    alpha: Math.random() * 0.5 + 0.2
+  });
+}
+
+function drawPetal(x, y, size, rot, alpha) {
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.translate(x, y);
+  ctx.rotate(rot);
+  ctx.beginPath();
+  ctx.moveTo(0, -size);
+  ctx.bezierCurveTo(size * 0.6, -size * 0.6, size * 0.6, size * 0.6, 0, size);
+  ctx.bezierCurveTo(-size * 0.6, size * 0.6, -size * 0.6, -size * 0.6, 0, -size);
+  ctx.fillStyle = `hsl(${5 + Math.random() * 15}, 60%, 70%)`;
+  ctx.fill();
+  ctx.restore();
+}
+
+// ---- SAMURAI A (left, offensive) ----
+let t = 0;
+
+function drawSamuraiA(x, y, phase) {
+  ctx.save();
+  ctx.translate(x, y);
+
+  const goldColor = '#c9943a';
+  const armorDark = '#1a1208';
+  const armorMid = '#2a1e10';
+  const skinTone = '#c68642';
+  const swordGlow = `rgba(200, 220, 255, ${0.5 + 0.4 * Math.sin(phase * 3)})`;
+
+  // Shadow
+  ctx.save();
+  ctx.globalAlpha = 0.25;
+  ctx.scale(1, 0.2);
+  ctx.beginPath();
+  ctx.ellipse(0, 10, 40, 15, 0, 0, Math.PI * 2);
+  ctx.fillStyle = '#000';
+  ctx.fill();
+  ctx.restore();
+
+  // ATTACK SWING — arm raised overhead, bringing sword down
+  const swingAngle = Math.sin(phase) * 0.7 - 0.3;
+  const bodyLean = Math.sin(phase) * 0.12;
+
+  ctx.rotate(bodyLean);
+
+  // Legs
+  ctx.save();
+  ctx.translate(0, 0);
+  // Back leg
+  ctx.beginPath();
+  ctx.moveTo(-5, -20);
+  ctx.lineTo(-18 + Math.sin(phase) * 5, 30);
+  ctx.lineTo(-12 + Math.sin(phase) * 5, 30);
+  ctx.lineTo(0, -20);
+  ctx.fillStyle = armorDark;
+  ctx.fill();
+  // Front leg (lunging forward)
+  ctx.beginPath();
+  ctx.moveTo(5, -20);
+  ctx.lineTo(20 - Math.sin(phase) * 5, 25);
+  ctx.lineTo(28 - Math.sin(phase) * 5, 25);
+  ctx.lineTo(10, -20);
+  ctx.fillStyle = armorMid;
+  ctx.fill();
+  ctx.restore();
+
+  // Torso / Armor
+  ctx.beginPath();
+  ctx.moveTo(-18, -20);
+  ctx.lineTo(18, -20);
+  ctx.lineTo(14, -60);
+  ctx.lineTo(-14, -60);
+  ctx.closePath();
+  ctx.fillStyle = armorDark;
+  ctx.fill();
+  ctx.strokeStyle = goldColor;
+  ctx.lineWidth = 0.8;
+  ctx.stroke();
+
+  // Armor plates decoration
+  for (let r = 0; r < 3; r++) {
+    ctx.beginPath();
+    ctx.moveTo(-13, -25 - r * 10);
+    ctx.lineTo(13, -25 - r * 10);
+    ctx.strokeStyle = `rgba(201,148,58,0.4)`;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+
+  // Shoulder pads
+  ctx.save();
+  ctx.translate(-16, -55);
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 10, 6, -0.3, 0, Math.PI * 2);
+  ctx.fillStyle = armorDark;
+  ctx.strokeStyle = goldColor;
+  ctx.lineWidth = 0.8;
+  ctx.fill(); ctx.stroke();
+  ctx.restore();
+  ctx.save();
+  ctx.translate(16, -55);
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 10, 6, 0.3, 0, Math.PI * 2);
+  ctx.fillStyle = armorDark;
+  ctx.strokeStyle = goldColor;
+  ctx.lineWidth = 0.8;
+  ctx.fill(); ctx.stroke();
+  ctx.restore();
+
+  // Sword arm — raised and swinging
+  ctx.save();
+  ctx.translate(16, -55);
+  ctx.rotate(swingAngle - 1.2); // starts raised
+  // Upper arm
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.lineTo(0, 28);
+  ctx.lineWidth = 10;
+  ctx.strokeStyle = armorMid;
+  ctx.stroke();
+  // Forearm
+  ctx.translate(0, 28);
+  ctx.rotate(0.5 + Math.sin(phase) * 0.4);
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.lineTo(0, 24);
+  ctx.lineWidth = 8;
+  ctx.stroke();
+  // Sword
+  ctx.translate(0, 20);
+  // Glow
+  ctx.save();
+  ctx.globalAlpha = 0.4 + 0.3 * Math.abs(Math.sin(phase * 2));
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.lineTo(0, -100);
+  ctx.lineWidth = 8;
+  ctx.strokeStyle = swordGlow;
+  ctx.shadowBlur = 20;
+  ctx.shadowColor = 'rgba(180,210,255,0.8)';
+  ctx.stroke();
+  ctx.restore();
+  // Blade
+  ctx.beginPath();
+  ctx.moveTo(-2, 0);
+  ctx.lineTo(2, 0);
+  ctx.lineTo(0.5, -95);
+  ctx.lineTo(-0.5, -95);
+  ctx.fillStyle = '#d4d8e0';
+  ctx.fill();
+  // Tsuba (guard)
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 8, 5, 0, 0, Math.PI * 2);
+  ctx.fillStyle = goldColor;
+  ctx.fill();
+  // Hilt
+  ctx.beginPath();
+  ctx.rect(-3.5, 0, 7, 20);
+  ctx.fillStyle = '#3a2208';
+  ctx.fill();
+  ctx.restore();
+
+  // Shield/left arm raised in guard
+  ctx.save();
+  ctx.translate(-16, -52);
+  ctx.rotate(0.4 + Math.sin(phase * 0.8) * 0.2);
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.lineTo(0, 22);
+  ctx.lineWidth = 9;
+  ctx.strokeStyle = armorMid;
+  ctx.stroke();
+  ctx.restore();
+
+  // Head / Kabuto
+  ctx.save();
+  ctx.translate(0, -60);
+  // Helmet
+  ctx.beginPath();
+  ctx.arc(0, -12, 16, Math.PI, 0, false);
+  ctx.lineTo(16, 0);
+  ctx.lineTo(-16, 0);
+  ctx.fillStyle = armorDark;
+  ctx.strokeStyle = goldColor;
+  ctx.lineWidth = 0.8;
+  ctx.fill(); ctx.stroke();
+  // Menpo (face mask)
+  ctx.beginPath();
+  ctx.arc(0, 0, 11, 0, Math.PI, false);
+  ctx.fillStyle = '#1a0e08';
+  ctx.fill();
+  // Eyes (fierce red glow)
+  ctx.shadowBlur = 8; ctx.shadowColor = '#ff2200';
+  ctx.fillStyle = '#ff4400';
+  ctx.beginPath(); ctx.arc(-4, -4, 2.5, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(4, -4, 2.5, 0, Math.PI * 2); ctx.fill();
+  ctx.shadowBlur = 0;
+  // Horn / Maedate ornament
+  ctx.beginPath();
+  ctx.moveTo(-6, -22);
+  ctx.lineTo(-8, -38);
+  ctx.moveTo(6, -22);
+  ctx.lineTo(8, -38);
+  ctx.strokeStyle = goldColor;
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  ctx.restore();
+
+  ctx.restore();
+}
+
+// ---- SAMURAI B (right, defensive stance) ----
+function drawSamuraiB(x, y, phase) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(-1, 1); // Mirror
+
+  const goldColor = '#8b6914';
+  const armorDark = '#0d0d18';
+  const armorMid = '#151522';
+  const swordGlow = `rgba(255, 150, 80, ${0.4 + 0.3 * Math.sin(phase * 2.5)})`;
+
+  // Shadow
+  ctx.save();
+  ctx.globalAlpha = 0.25;
+  ctx.scale(1, 0.2);
+  ctx.beginPath();
+  ctx.ellipse(0, 10, 40, 15, 0, 0, Math.PI * 2);
+  ctx.fillStyle = '#000';
+  ctx.fill();
+  ctx.restore();
+
+  const blockAngle = Math.cos(phase * 1.2) * 0.2;
+  ctx.rotate(blockAngle);
+
+  // Legs — wider stance
+  ctx.beginPath();
+  ctx.moveTo(-5, -22);
+  ctx.lineTo(-22, 28);
+  ctx.lineTo(-14, 28);
+  ctx.lineTo(0, -22);
+  ctx.fillStyle = armorDark;
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.moveTo(5, -22);
+  ctx.lineTo(22, 28);
+  ctx.lineTo(14, 28);
+  ctx.lineTo(0, -22);
+  ctx.fillStyle = armorMid;
+  ctx.fill();
+
+  // Torso
+  ctx.beginPath();
+  ctx.moveTo(-18, -22);
+  ctx.lineTo(18, -22);
+  ctx.lineTo(14, -62);
+  ctx.lineTo(-14, -62);
+  ctx.closePath();
+  ctx.fillStyle = armorDark;
+  ctx.strokeStyle = goldColor;
+  ctx.lineWidth = 0.8;
+  ctx.fill(); ctx.stroke();
+
+  for (let r = 0; r < 3; r++) {
+    ctx.beginPath();
+    ctx.moveTo(-13, -27 - r * 10);
+    ctx.lineTo(13, -27 - r * 10);
+    ctx.strokeStyle = `rgba(139,105,20,0.4)`;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+
+  // Shoulders
+  [-16, 16].forEach(sx => {
+    ctx.save();
+    ctx.translate(sx, -57);
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 11, 6, sx < 0 ? -0.3 : 0.3, 0, Math.PI * 2);
+    ctx.fillStyle = armorDark;
+    ctx.strokeStyle = goldColor;
+    ctx.lineWidth = 0.8;
+    ctx.fill(); ctx.stroke();
+    ctx.restore();
+  });
+
+  // Sword arm blocking upward (blocking the incoming strike)
+  ctx.save();
+  ctx.translate(16, -57);
+  ctx.rotate(-0.8 - Math.cos(phase) * 0.3);
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.lineTo(0, 26);
+  ctx.lineWidth = 10;
+  ctx.strokeStyle = armorMid;
+  ctx.stroke();
+  ctx.translate(0, 26);
+  ctx.rotate(-0.6);
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.lineTo(0, 22);
+  ctx.lineWidth = 8;
+  ctx.stroke();
+  ctx.translate(0, 18);
+  // Sword glow (orange/red — different clan)
+  ctx.save();
+  ctx.globalAlpha = 0.4;
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.lineTo(0, -90);
+  ctx.lineWidth = 8;
+  ctx.strokeStyle = swordGlow;
+  ctx.shadowBlur = 20;
+  ctx.shadowColor = 'rgba(255,120,40,0.8)';
+  ctx.stroke();
+  ctx.restore();
+  // Blade
+  ctx.beginPath();
+  ctx.moveTo(-2, 0);
+  ctx.lineTo(2, 0);
+  ctx.lineTo(0.5, -88);
+  ctx.lineTo(-0.5, -88);
+  ctx.fillStyle = '#ccd0d8';
+  ctx.fill();
+  // Tsuba
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 8, 5, 0, 0, Math.PI * 2);
+  ctx.fillStyle = '#8b6914';
+  ctx.fill();
+  ctx.beginPath();
+  ctx.rect(-3.5, 0, 7, 20);
+  ctx.fillStyle = '#2a1808';
+  ctx.fill();
+  ctx.restore();
+
+  // Other arm bracing
+  ctx.save();
+  ctx.translate(-16, -54);
+  ctx.rotate(-0.3 - Math.sin(phase * 0.9) * 0.15);
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.lineTo(0, 24);
+  ctx.lineWidth = 9;
+  ctx.strokeStyle = armorMid;
+  ctx.stroke();
+  ctx.restore();
+
+  // Head
+  ctx.save();
+  ctx.translate(0, -62);
+  ctx.beginPath();
+  ctx.arc(0, -12, 16, Math.PI, 0, false);
+  ctx.lineTo(16, 0);
+  ctx.lineTo(-16, 0);
+  ctx.fillStyle = armorDark;
+  ctx.strokeStyle = goldColor;
+  ctx.lineWidth = 0.8;
+  ctx.fill(); ctx.stroke();
+  // Face
+  ctx.beginPath();
+  ctx.arc(0, 0, 11, 0, Math.PI, false);
+  ctx.fillStyle = '#0d0d1a';
+  ctx.fill();
+  // Eyes (blue glow)
+  ctx.shadowBlur = 8; ctx.shadowColor = '#4488ff';
+  ctx.fillStyle = '#5599ff';
+  ctx.beginPath(); ctx.arc(-4, -4, 2.5, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(4, -4, 2.5, 0, Math.PI * 2); ctx.fill();
+  ctx.shadowBlur = 0;
+  // Crown ornament
+  ctx.beginPath();
+  ctx.moveTo(0, -24);
+  ctx.lineTo(0, -42);
+  ctx.strokeStyle = goldColor;
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(0, -44, 4, 0, Math.PI * 2);
+  ctx.fillStyle = goldColor;
+  ctx.fill();
+  ctx.restore();
+
+  ctx.restore();
+}
+
+// Spark particles
+const sparks = [];
+function addSparks(x, y) {
+  for (let i = 0; i < 8; i++) {
+    sparks.push({
+      x, y,
+      vx: (Math.random() - 0.5) * 5,
+      vy: (Math.random() - 0.5) * 5 - 2,
+      life: 1,
+      size: Math.random() * 3 + 1
+    });
+  }
+}
+
+let sparkTimer = 0;
+
+function animate() {
+  requestAnimationFrame(animate);
+  t += 0.025;
+
+  const W = canvas.width;
+  const H = canvas.height;
+  const groundY = H - 20;
+
+  ctx.clearRect(0, 0, W, H);
+
+  // Gradient background
+  const bg = ctx.createLinearGradient(0, 0, 0, H);
+  bg.addColorStop(0, 'rgba(10,5,0,0)');
+  bg.addColorStop(1, 'rgba(10,5,0,0.3)');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+
+  // Ground mist
+  const mist = ctx.createLinearGradient(0, groundY - 40, 0, groundY);
+  mist.addColorStop(0, 'transparent');
+  mist.addColorStop(1, 'rgba(201,148,58,0.04)');
+  ctx.fillStyle = mist;
+  ctx.fillRect(0, groundY - 40, W, 40);
+
+  // Petals
+  petals.forEach(p => {
+    p.x += p.vx + Math.sin(t * 0.3 + p.y * 0.01) * 0.3;
+    p.y += p.vy;
+    p.rot += p.rotV;
+    if (p.y > H + 20) { p.y = -20; p.x = Math.random() * W; }
+    drawPetal(p.x, p.y, p.size, p.rot, p.alpha);
+  });
+
+  // Samurai positions — closer together for more drama
+  const centerX = W / 2;
+  const gap = 110 + Math.sin(t * 0.5) * 15;
+  const samA_x = centerX - gap;
+  const samB_x = centerX + gap;
+
+  drawSamuraiA(samA_x, groundY, t);
+  drawSamuraiB(samB_x, groundY, t);
+
+  // Clash sparks at sword contact point
+  sparkTimer += 1;
+  const clashX = centerX + Math.sin(t * 2) * 20;
+  const clashY = groundY - 110 + Math.sin(t * 1.5) * 15;
+
+  if (sparkTimer % 18 === 0) addSparks(clashX, clashY);
+
+  // Draw / update sparks
+  for (let i = sparks.length - 1; i >= 0; i--) {
+    const sp = sparks[i];
+    sp.x += sp.vx;
+    sp.y += sp.vy;
+    sp.vy += 0.15;
+    sp.life -= 0.04;
+    if (sp.life <= 0) { sparks.splice(i, 1); continue; }
+    ctx.save();
+    ctx.globalAlpha = sp.life;
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = `hsl(${30 + Math.random() * 40}, 100%, 70%)`;
+    ctx.fillStyle = `hsl(${40 + Math.random() * 20}, 100%, 80%)`;
+    ctx.beginPath();
+    ctx.arc(sp.x, sp.y, sp.size * sp.life, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // Sword clash glow
+  const glowIntensity = 0.3 + 0.4 * Math.abs(Math.sin(t * 3));
+  const clashGlow = ctx.createRadialGradient(clashX, clashY, 0, clashX, clashY, 50);
+  clashGlow.addColorStop(0, `rgba(255, 220, 100, ${glowIntensity})`);
+  clashGlow.addColorStop(1, 'transparent');
+  ctx.fillStyle = clashGlow;
+  ctx.beginPath();
+  ctx.arc(clashX, clashY, 50, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+animate();
+
+// ===== SCROLL FADE =====
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) e.target.classList.add('visible');
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
