@@ -868,10 +868,13 @@ function animate() {
   }
 
   // Petals
-  petals.forEach(p=>{
-    p.x+=p.vx+Math.sin(globalT*.22+p.y*.01)*.45;p.y+=p.vy;p.rot+=p.rotV;
-    if(p.y>H+25){p.y=-25;p.x=Math.random()*W;}
-    drawPetal(p);
+   Petals
+  petals.forEach(p => {
+    p.x += p.vx + Math.sin(t * 0.3 + p.y * 0.01) * 0.3;
+    p.y += p.vy;
+    p.rot += p.rotV;
+    if (p.y > H + 20) { p.y = -20; p.x = Math.random() * W; }
+    drawPetal(p.x, p.y, p.size, p.rot, p.alpha);
   });
 
   // Samurai spacing — closer in deadlock, widest in break
